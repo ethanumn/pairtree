@@ -79,25 +79,29 @@ def _remove_bad(ssms, logbf_thresh, var_read_prob_alt, verbose=False):
 
 def main():
   parser = argparse.ArgumentParser(
-    description='Find variants with likely incorrect var_read_prob by comparing model with provided var_read_prob to haploid (LOH) model using Bayes factors',
+    description='Find variants with likely incorrect var_read_prob by comparing model with provided var_read_prob to haploid (LOH) model using Bayes factors.',
     formatter_class=argparse.ArgumentDefaultsHelpFormatter
   )
   parser.add_argument('--logbf-threshold', type=float, default=10.,
-    help='Logarithm of Bayes factor threshold at which the haploid model is accepted as more likely model than the model using the provided var_read_prob')
+    help='Logarithm of Bayes factor threshold at which the haploid model is accepted as more likely model than the model using the provided var_read_prob.')
   parser.add_argument('--verbose', action='store_true',
-    help='Print debugging messages')
+    help='Print debugging messages.')
   parser.add_argument('--ignore-existing-garbage', action='store_true',
     help='Ignore any existing garbage variants listed in in_params_fn and test all variants. If not specified, any existing garbage variants will be kept as garbage and not tested again.')
-  parser.add_argument('--action', choices=('add_to_garbage', 'modify_var_read_prob'), default='add_to_garbage')
-  parser.add_argument('--var-read-prob-alt', type=float, default=1.)
+  parser.add_argument('--action', choices=('add_to_garbage', 'modify_var_read_prob'), default='add_to_garbage',
+    help='Action to take after script has completed. `add_to_garbage` will add the resulting bad_ssms to the list \
+          of garbage samples in the params.json file provided. `modify_var_read_prob` will overwrite the var_read_prob \
+          in the params.json file with the value provided by the `--var-read-prob-alt` option of this script.')
+  parser.add_argument('--var-read-prob-alt', type=float, default=1.,
+                        help='Value that will be used to overwrite the var_read_prob of any garbage variants found if `--action` is set to `modify_var_read_prob`.')
   parser.add_argument('in_ssm_fn',
-    help='Input SSM file with mutations')
+    help='Input SSM file with mutations'.)
   parser.add_argument('in_params_fn',
-    help='Input params file listing sample names and any existing garbage mutations')
+    help='Input params file listing sample names and any existing garbage mutations.')
   parser.add_argument('out_ssm_fn',
-    help='Output SSM file with modified list of garbage mutations')
+    help='Output SSM file with modified list of garbage mutations.')
   parser.add_argument('out_params_fn',
-    help='Output params file with modified list of garbage mutations')
+    help='Output params file with modified list of garbage mutations.')
   args = parser.parse_args()
 
   np.set_printoptions(linewidth=400, precision=3, threshold=sys.maxsize, suppress=True)

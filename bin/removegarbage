@@ -87,7 +87,7 @@ def _remove_garbage(posterior, max_garb_prob, seed):
 
 def main():
   parser = argparse.ArgumentParser(
-    description='Detect garbage variants and produce a modified input that excludes them',
+    description='Detect garbage variants and produce a modified input that excludes them.',
     formatter_class=argparse.ArgumentDefaultsHelpFormatter
   )
   parser.add_argument('--seed', dest='seed', type=int,
@@ -103,13 +103,13 @@ def main():
   parser.add_argument('--ignore-existing-garbage', action='store_true',
     help='Ignore any existing garbage variants listed in in_params_fn and test all variants. If not specified, any existing garbage variants will be kept as garbage and not tested again.')
   parser.add_argument('--verbose', action='store_true',
-    help='Print debugging messages')
+    help='Print debugging messages.')
   parser.add_argument('ssm_fn',
-    help='Input SSM file with mutations')
+    help='Input SSM file with mutations.')
   parser.add_argument('in_params_fn',
-    help='Input params file listing sample names and any existing garbage mutations')
+    help='Input params file listing sample names and any existing garbage mutations.')
   parser.add_argument('out_params_fn',
-    help='Output params file with modified list of garbage mutations')
+    help='Output params file with modified list of garbage mutations.')
   args = parser.parse_args()
 
   common.debug.DEBUG = args.verbose
