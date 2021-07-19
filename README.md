@@ -296,8 +296,7 @@ This can result in an implied subclonal frequency being greater than 1. This is 
 copy number calls, such as an uncalled loss of heterozygosity (LOH) event which removes the wildtype
 allele in a lineage and leaves only the variant allele.
 
-In order to find these mutations such that they can be corrected, we provide the script fix_bad_var_read_prob.py
-that can be found in the /util directory. Several options are of particular interest.
+In order to find these mutations such that they can be corrected, we provide the script `util/fix_bad_var_read_prob.py`. Several options are of particular interest.
 
 * `--logbf-threshold`: Logarithm of Bayes factor threshold at which the haploid model is accepted as more likely model than the model using the provided var_read_prob.
 * `--ignore-existing-garbage`: Ignore any existing garbage variants listed in in_params_fn and test all variants. If not specified, any existing garbage variants will be kept as garbage and not tested again.
@@ -329,8 +328,7 @@ Removing garbage mutations
 ==========================
 Pairtree relies on the infinite sites assumption (ISA) when converting mutation allele frequencies to subclonal frequencies, and building clone trees. Pairtree is also sensitive to other factors such as missed CNA calls, or technical noise which can skew the subcloncal frequency conversion. Therefore, it is necessary to detect and remove such mutations before building the clone tree. Pairwise relationships between mutations reveal both ISA violations and other types of erroneous mutations, which we refer to collectively as _garbage mutations_.
 
-In order to find these mutations such that they can be corrected, we provide the script removegarbage
-that can be found in the /bin directory. There are several options for this script which are of particular interest.
+In order to find these mutations such that they can be added to our list of garbage mutations, we provide the script `bin/removegarbage`. There are several options for this script which are of particular interest.
 
 * `--prior`: Pairwise garbage prior probability. The default value of 0.2 represents a uniform prior over pairwise relationship types.
 * `--max-garb-prob`: Maximum probability of garbage to permit for any pair when the algorithm terminates.
