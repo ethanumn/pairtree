@@ -1,0 +1,128 @@
+#!/usr/bin/env python3
+import os
+import sys
+import subprocess
+
+import argparse
+import random
+import numpy as np
+import configparser
+
+from collections import OrderedDict
+from tqdm import tqdm
+
+sys.path.insert(0, os.path.dirname(__file__))
+
+DEFAULT_SEARCH_PATHS = ["lib", "util"]
+
+
+def find_script_path(file_name):
+    """
+    Attempts to find a file in sys.path.
+    This is useful for the instance we're unable
+    to import a module in a normal fashion.
+    """
+
+    for path in sys.path:
+        for root, dirs, files in os.walk(path):
+            if file_name in files:
+                return os.path.join(root, file_name)
+
+    return ""
+
+def read_ini_file(file_name):
+    """
+    Reads an ini file and returns a ConfigParse object that can
+    be used to run a custom configuration of different Pairtree
+    modules.
+    """
+
+    config = configparser.ConfigParser(defaults=os.environ,
+                                       interpolation=configparser.ExtendedInterpolation(),
+                                       dict_type=OrderedDict)
+
+    config.read(file_name)
+
+    return config
+
+
+def run_pairtree_modules(config):
+    """
+    Uses the parsed ini file object to run Pairtree modules.
+    """
+
+    script_names = config.sections() # get all of the sections in ini file besides DEFAULT
+
+    # go through each section, and set up command to pass to subprocess.run function
+    for script in script_names:
+
+        script_args = []
+
+        for key in config[script]:
+
+            # we can ignore this key if it's in the defaults
+            if key in config.defaults():
+                continue
+
+            value = config[script][key]
+
+            # if argument requires a flag, join key and value with a space
+            if key.startswith("-"):
+                script_args.append(key)
+                script_args.append(value)
+
+            # if argument is positional, we just need the value
+            else:
+                script_args.append(value)
+
+        script_path = find_script_path(script) # get the full path of the script
+
+        subprocess.run([sys.executable, script_path, *script_args])
+
+
+
+def main():
+    """
+    Reads in command line arguments, then uses each ini file to run a custom Pairtree configuration.
+    """
+
+    # set up command line arguments
+    parser = argparse.ArgumentParser(
+        description='Automation tool for running a customizable pipeline of Pairtree modules.',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+
+    parser.add_argument('-f', '--files', nargs='+', required=True,
+        help="List of ini files which will each be used to run a particular configuration of Pairtree modules.")
+
+    parser.add_argument('-s', '--search-paths', nargs='*', default=[os.path.join(os.path.dirname(__file__), '..', path) for path in DEFAULT_SEARCH_PATHS],
+        help="List of search paths to look for python scripts.")
+
+
+    # read and process command line arguments
+    args = parser.parse_args()
+
+    pbar = tqdm(args.files)
+
+
+    # add search paths to look for files listed in ini file
+    for path in args.search_paths:
+        sys.path.insert(0, path)
+
+
+    # read each ini file and use the resulting dictionary to run a custom Pairtree utility configuration
+    for file in pbar:
+
+        pbar.set_description("Running Pairtree configuration defined in %s" % file)
+
+        config = read_ini_file(file)
+
+        if len(config) != 0:
+            run_pairtree_modules(config)
+
+        pbar.set_description("Completed Pairtree configuration defined in %s" % file)
+
+
+if __name__ == '__main__':
+
+    main()
