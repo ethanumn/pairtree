@@ -58,11 +58,9 @@ def run_pairtree_modules(config):
 
         script_args = []
 
-        for key in config[script]:
+        script_keys = list(config[script])[:len(config[script]) - len(config.defaults())] # we only want the keys in this section
 
-            # we can ignore this key if it's in the defaults
-            if key in config.defaults():
-                continue
+        for key in script_keys:
 
             value = config[script][key]
 
