@@ -25,26 +25,35 @@ Pairtree](https://doi.org/10.1101/2020.11.06.372219) (Wintersinger et al.
 Installing Pairtree
 ===================
 1. Install dependencies. Installation is usually easiest if you use
-   [Anaconda](https://www.anaconda.com/products/individual), which includes the
-   most difficult-to-install dependencies.
-   [Miniconda](https://docs.conda.io/en/latest/miniconda.html) also works well.
-   You need the following:
+   [Mambaforge](https://github.com/conda-forge/miniforge#mambaforge), which
+   includes a recent version of Python alongside the
+   [Mamba](https://github.com/mamba-org/mamba) package manager. As Mamba is a
+   faster reimplementation of Conda, you can alternatively use Conda or
+   Miniconda.
 
-    * [Python](https://www.python.org/) 3.6 or greater **(included in Anaconda)**
-    * [NumPy](https://numpy.org/) **(included in Anaconda)**
-    * [SciPy](https://www.scipy.org/) **(included in Anaconda)**
-    * [scikit-learn](https://scikit-learn.org/stable/) **(included in Anaconda)**
-    * [tqdm](https://github.com/tqdm/tqdm) (e.g., install via `pip3 install --user tqdm`) **(included in Anaconda)**
-    * [Numba](https://numba.pydata.org/) (e.g., install via `pip3 install --user numba` or `conda install numba`)
-    * [colorlover](https://github.com/plotly/colorlover) (e.g., install via `pip3 install --user colorlover`)
-    * C compiler (e.g., GCC)
+   Refer to [requirements.txt](requirements.txt) for the full list of
+   dependencies. These can be installed in a new environment with the following
+   commands. If you're using Anaconda instead of Mamba, replace `mamba` with
+   `conda` below.
+
+   To install all requirements using `mamba` (or `conda`), first clone
+   the Pairtree repository and then create a new virtual environment with the
+   dependencies.
+   
+        git clone https://github.com/jwintersinger/pairtree
+        mamba create --name pairtree --file requirements.txt
+
+   Or install the dependencies in your current environment:
+   
+        git clone https://github.com/jwintersinger/pairtree   
+        conda install --list requirements.txt
 
    Pairtree has only been tested on Linux systems, but should work on any
    UNIX-like OS (including macOS).
 
-2. Clone the Pairtree repository, then download and build the C code required
-   to fit subclone frequencies to the tree. This algorithm was published in
-   [Jia et al.](https://arxiv.org/abs/1811.01129), and uses the authors' implementation with minor modifications.
+2. Download and build the C code required to fit subclone frequencies to the
+   tree. This algorithm was published in [Jia et al.](https://arxiv.org/abs/1811.01129),
+   and uses the authors' implementation with minor modifications.
 
         git clone https://github.com/jwintersinger/pairtree
         cd pairtree/lib
@@ -207,7 +216,14 @@ indeed not present in the sample -- an instance where you have zero variant
 reads amongst ten total reads indicates considerably less confidence than if
 you have zero variant reads for 1000 total reads.
 
-To impute missing read counts, you have three options.
+To impute missing read counts, the best option is to refer to the original
+sequencing data (e.g., the BAM file) to determine how many reads were present
+at the locus in the given sample. As this task can be arduous, you may
+alternatively wish to take the mean read count across samples for that genomic
+locus, or the mean read count for all loci in that sample. More complex
+strategies that try to correct for variable depth across loci (e.g., because of
+GC bias) or differing depths across samples (e.g., because some samples were
+more deeply sequenced than others) are also possible.
 
 
 Clustering mutations
@@ -278,15 +294,8 @@ subclones to create a simpler tree in which it is easier to discern major
 structural differences.
 
 
-Interpreting Pairtree output
-============================
-* To export Pairtree's visualizations from `bin/plottree` for use in
-  publications, try [SVG Crowbar](https://nytimes.github.io/svg-crowbar/). All
-  figures Pairtree creates are in SVG format, which is suitable for use at
-  arbitrarily high resolutions (including in print) because of its vector-based
-  nature.
-* (add note about how logs will be written in JSON format if stdout/stderr is directed to a file)
-* (add note about summposterior, plottree, etc.)
+Interpreting and manipulating Pairtree output
+=============================================
 
 Understanding the html file format outputted by `bin/plottree`
 ---------------------------------------------------------------
@@ -335,6 +344,63 @@ the entropy of the proportion of mutations in each cluster.
 
 * `Cluster stats`: shows a table of statistics for each cluster. The columns are `Cluster`, `Members`, and `Deviation`. The `Cluster` column lists the ID number for the cluster or subclone. `Members` lists the number of variants in a cluster. `Deviation` lists the median absolute difference between the subclone frequency of the supervariant, and its related cluster of variants.
 
+Exporting Pairtree output to other formats
+------------------------------------------
+* Use `bin/summposterior` to summarize the posterior distribution over trees
+  and `bin/plottree` to plot all details corresponding to an individual tree.
+  See the [Pairtree executables](#pairtree-executables) section for details.
+
+* To export Pairtree's visualizations from `bin/plottree` for use in
+  publications, try [SVG Crowbar](https://nytimes.github.io/svg-crowbar/). All
+  figures Pairtree creates embedded in HTML web pages using the SVG figure
+  format, which is suitable for use at arbitrarily high resolutions (including
+  in print) because of its vector-based nature. Some of these figures are
+  rendered with the Plotly plotting library, though most use custom code that
+  ultimately invokes d3.js.
+
+* Alternatively, to export the subset of Pairtree's visualizations that use Plotly without having to open the
+  HTML plots in a web browser, try
+  [Kaleido](https://github.com/plotly/Kaleidov), which is a Plotly-related
+  library for exporting plots without using a browser (accomplished using an
+  embedded version of the Chromium web browser). Most Plotly-related calls in
+  Pairtree call `plotly.io.to_html(fig, ...)`, which can be replaced by
+  [`fig.write_image`](https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.write_imagev).
+  
+* Unfortunately, for the other plots that don't use Plotly (such as the tree
+  structure and subclonal frequency plots), there is no straightforward means
+  of rendering them without using a web browser. If SVG Crowbar fails or is
+  otherwise not a viable option, try printing the web page containing the plots
+  to a PDF file, then opening the PDF in Inkscape. The SVG plts on the web page
+  should be stored using a vector representation in the PDF, allowing you to
+  copy them from the PDF into a discrete SVG file where they can be manipulated
+  as vector images.
+
+* To export the data that `bin/plottree` visualizes for your own analysis, pass
+  the `--tree-json <filename>.json` option to `bin/plottree`. This will export
+  the data for a given tree to the `<filename>.json` file. For a tree with `K`
+  nodes (i.e., the root node representing normal tissue and `K-1` cancerous
+  subclones) constructed from `S` cancer samples,  some of the data included
+  will be amongst the following.
+    
+    * `phi`: tree-constrained subclonal frequencies as `KxS` matrix in row-major format
+    * `phi_hat`: data-implied subclonal frequencies as `KxS` matrix in row-major format
+    * `eta`: population frequencies as `KxS` matrix in row-major format
+    * `llh`: tree log likelihood in base e
+    * `nlglh`: tree log likelihood normalized to number of subclones and cancer samples in base 2, allowing comparison of trees across datasets to determine how many bits you're paying per subclone per cancer sample
+    * `prob`: posterior probability of tree
+    * `count`: how many times this tree was sampled in Metropolis-Hastings
+    * `parents`: `K-1`-length vector, where `parents[i]` provides the parent of node `i+1`
+    * `samples`: names of cancer samples given in input (providing the names associated with each column of the `phi`, `phi_hat`, and `eta` matrices)
+    * `cdi`, `cmdi`, `sdi`: `S`-length vectors providing the clonal dviersity index, clone and mutation diversity index, and Shannon diversity index for each sample. Refer to the Pairtree paper for definitions.
+
+* If `stderr` is redirected to a file (e.g., via `bin/pairtree ... 2>
+  stderr.log`), instead of rendering a progress bar, Pairtree will report its
+  progress by writing to `stderr` a series of JSON objects, with one per line.
+  An example line follows:
+
+    ```json
+    {"desc": "Sampling trees", "count": 11457, "total": 12000, "unit": "tree", "started_at": "2021-11-01 02:45:37.226015", "timestamp": "2021-11-01 02:46:12.625482"}
+    ```
 
 Fixing incorrect ploidy
 ==========================
