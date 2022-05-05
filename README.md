@@ -261,6 +261,12 @@ You can use Pairtree to cluster variants through the `bin/clustervars`
 executable. Run with `--help` to obtain full usage instructions. Several
 options are of particular interest.
 
+* `ssm_fn`: Input SSM file with mutations.
+
+* `in_params_fn`: Input params file listing sample names and any existing garbage mutations.
+
+* `out_params_fn`: Output params file with cluster assignments for each mutation (excluding those listed in garbage mutations).
+
 * `--model linfreq`: This uses the default "lineage frequency" clustering model.
   This is the most computationally efficient choice, and is the most
   straightforwrd application of the DPMM to the clustering problem.
@@ -413,7 +419,7 @@ In order to find these mutations such that they can be corrected, we provide the
 
 * `--logbf-threshold`: Logarithm of Bayes factor threshold at which the haploid model is accepted as more likely model than the model using the provided var_read_prob.
 * `--ignore-existing-garbage`: Ignore any existing garbage variants listed in `in_params_fn` and test all variants. If not specified, any existing garbage variants will be kept as garbage and not tested again.
-* `--action (add_to_garbage, modify_var_read_prob)`: Action to take after script has completed. `add_to_garbage` will add the resulting 'bad_ssms' to the list of garbage samples in the params.json file provided. `modify_var_read_prob` will overwrite the var_read_prob in the params.json file with the value provided by the `--var-read-prob-alt` option of this script.
+* `--action (add_to_garbage, modify_var_read_prob)`: Action to take after script has completed. `add_to_garbage` will add the resulting 'bad_ssms' to the list of garbage samples in the params.json file provided. `modify_var_read_prob` will overwrite the var_read_prob in the .ssm file with the value provided by the `--var-read-prob-alt` option of this script.
 * `--var-read-prob-alt`: Value that will be used to overwrite the var_read_prob of any garbage variants found if `--action` is set to `modify_var_read_prob`.
 * `in_ssm_fn`: Input SSM file with mutations.
 * `in_params_fn`: Input params file listing sample names and any existing garbage mutations.
@@ -471,7 +477,7 @@ space.
 By default, Pairtree will run a separate MCMC chain for each CPU core (logical
 or physical) present. As these chains are run in parallel, using multiple
 chains does not increase runtime. For more details, please refer to the
-"Running computatins in parallel to reduce runtime" section below.
+"Running computations in parallel to reduce runtime" section below.
 
 Changing number of samples, burn-in, and thinning
 -------------------------------------------------
@@ -485,7 +491,7 @@ Three options control the behaviour of each MCMC chain used to sample trees.
 
 * Burn-in: each chain will take some number of samples to reach high-density
   regions of tree space, such that those trees come from a good approximation
-  of the true posterior. The `--burnin` paramemter controls what proportion of
+  of the true posterior. The `--burnin` parameter controls what proportion of
   trees Pairtree will discard from the beginning of each chain, so as to avoid
   including poor-quality trees in your results. By default, Pairtree discards
   the first one-third of samples from each chain.
